@@ -3,76 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lumiere Industrial ERP</title>
+    <title>LUMIÈRE | Premium ERP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <audio id="order-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
     <div id="login-overlay">
-        <div class="login-box">
-            <h2 style="color:var(--gold)">LUMIÈRE</h2>
-            <input type="password" id="staff-pin" placeholder="Enter Staff PIN (1234)">
-            <button onclick="window.checkLogin()">LOGIN</button>
+        <div class="login-card">
+            <div class="luxury-logo">LUMIÈRE</div>
+            <p style="letter-spacing: 5px; font-size: 10px; color: #666;">ESTABLISHED 2026</p>
+            <input type="password" id="staff-pin" placeholder="ENTER STAFF PIN" maxlength="4">
+            <button onclick="window.checkLogin()">ENTER SYSTEM</button>
         </div>
     </div>
 
     <div id="app-content" style="display:none">
-        <nav class="sidebar">
-            <div class="logo">LUMIÈRE</div>
-            <button onclick="showModule('floor')">Floor Map</button>
-            <button onclick="showModule('kitchen')">Kitchen</button>
-            <button onclick="showModule('inventory')">Inventory</button>
-            <button onclick="showModule('accounting')">Accounting</button>
-            <button onclick="showModule('analytics')">Analytics</button>
-            <button onclick="location.reload()" style="color:red; margin-top:20px;">Logout</button>
-        </nav>
+        <header class="main-header">
+            <div class="nav-brand">LUMIÈRE <span>SYSTEM v4.0</span></div>
+            <nav class="nav-links">
+                <button class="active" onclick="showModule('floor', this)">FLOOR MAP</button>
+                <button onclick="showModule('kitchen', this)">KITCHEN (KDS)</button>
+                <button onclick="showModule('inventory', this)">INVENTORY</button>
+                <button onclick="showModule('accounting', this)">ACCOUNTING</button>
+                <button onclick="showModule('analytics', this)">DASHBOARD</button>
+            </nav>
+            <div class="staff-info"><button onclick="location.reload()">LOGOUT</button></div>
+        </header>
 
         <main class="viewport">
-            <section id="floor-mod" class="module">
+            <section id="floor-mod" class="module-view">
+                <div class="view-header">
+                    <h2>Main Dining Floor</h2>
+                    <div class="legend">
+                        <span class="dot available"></span> Available
+                        <span class="dot ordering"></span> Ordering
+                        <span class="dot cooking"></span> Cooking
+                    </div>
+                </div>
                 <div class="grid" id="table-grid"></div>
             </section>
 
-            <section id="kitchen-mod" class="module" style="display:none">
-                <h2>Live KDS</h2>
-                <div id="kds-list"></div>
+            <section id="kitchen-mod" class="module-view" style="display:none">
+                <div class="view-header"><h2>Kitchen Display System</h2></div>
+                <div id="kds-list" class="kds-flex"></div>
             </section>
 
-            <section id="inventory-mod" class="module" style="display:none">
-                <h2>Inventory Control</h2>
-                <table id="inv-table">
-                    <thead><tr><th>Item</th><th>Stock</th><th>Action</th></tr></thead>
-                    <tbody id="inv-body"></tbody>
-                </table>
+            <section id="accounting-mod" class="module-view" style="display:none">
+                <div class="view-header"><h2>Financial Ledger</h2></div>
+                <div class="accounting-grid">
+                    <div class="billing-pane">
+                        <h3>Pending Settlement</h3>
+                        <div id="active-bills"></div>
+                    </div>
+                    <div class="summary-pane">
+                        <div class="stat-card gold">Total Revenue: <span id="rev-total">Rs. 0</span></div>
+                    </div>
+                </div>
             </section>
 
-            <section id="accounting-mod" class="module" style="display:none">
-                <h2>General Ledger & Billing</h2>
-                <div id="active-bills"></div>
-            </section>
-
-            <section id="analytics-mod" class="module" style="display:none">
-                <h2>Business Intelligence</h2>
-                <div class="stat-card">Total Revenue: <span id="rev-total">0</span></div>
-                <div id="sales-log"></div>
-            </section>
+            <section id="inventory-mod" class="module-view" style="display:none"><h2>Stock Management</h2></section>
+            <section id="analytics-mod" class="module-view" style="display:none"><h2>Business Analytics</h2></section>
         </main>
     </div>
 
+    <div id="drawer-overlay" onclick="window.closeDrawer()"></div>
     <div id="drawer">
-        <div class="drawer-header">
-            <h3 id="table-title">Table</h3>
-            <div class="cats">
-                <button onclick="filterMenu('Starters')">Starters</button>
-                <button onclick="filterMenu('Mains')">Mains</button>
-                <button onclick="filterMenu('Drinks')">Drinks</button>
+        <div class="drawer-inner">
+            <div class="drawer-top">
+                <h2 id="table-title">TABLE 00</h2>
+                <button class="vip-toggle" onclick="window.toggleVIP()">★ VIP</button>
+            </div>
+            <div class="pos-layout">
+                <div class="menu-side">
+                    <div class="cat-bar">
+                        <button onclick="filterMenu('Starters')">STARTERS</button>
+                        <button onclick="filterMenu('Mains')">MAINS</button>
+                        <button onclick="filterMenu('Drinks')">DRINKS</button>
+                    </div>
+                    <div id="menu-items" class="menu-items-grid"></div>
+                </div>
+                <div class="check-side">
+                    <h3>Current Bill</h3>
+                    <div id="cart-list" class="cart-items"></div>
+                    <div class="bill-footer">
+                        <div class="total-line">TOTAL: <span id="cart-total">Rs. 0</span></div>
+                        <button class="fire-btn" onclick="window.fireOrder()">SEND TO KITCHEN</button>
+                    </div>
+                </div>
             </div>
         </div>
-        <div id="menu-items" class="menu-grid"></div>
-        <div class="order-summary">
-            <h4>Cart</h4>
-            <div id="cart-list"></div>
-            <button class="fire-btn" onclick="window.fireOrder()">SEND TO KITCHEN</button>
-        </div>
-        <button class="close-btn" onclick="closeDrawer()">CLOSE</button>
     </div>
 
     <script type="module" src="app.js"></script>
