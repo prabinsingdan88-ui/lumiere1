@@ -1,97 +1,31 @@
 :root { --gold: #d4af37; --bg: #050505; --card: #121212; --border: #222; }
 body { background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; margin: 0; overflow: hidden; }
 
-/* HEADER */
 .main-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; height: 70px; background: #000; border-bottom: 1px solid var(--border); }
-.nav-brand { color: var(--gold); font-weight: 600; }
-.nav-links button { background: none; border: none; color: #666; padding: 25px 10px; cursor: pointer; font-size: 11px; }
+.nav-brand { color: var(--gold); font-weight: 600; letter-spacing: 2px; }
+.nav-links button { background: none; border: none; color: #666; padding: 25px 10px; cursor: pointer; font-size: 11px; font-weight: 600; }
 .nav-links button.active { color: var(--gold); box-shadow: inset 0 -2px 0 var(--gold); }
+.refresh-btn { background: #111; border: 1px solid #333; color: #888; padding: 8px 15px; border-radius: 4px; font-size: 10px; cursor: pointer; }
 
-/* GRID */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; padding: 20px; }
-.table-card { aspect-ratio: 1; background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-.table-card.ordering { border-color: var(--gold); }
+.table-card { aspect-ratio: 1; background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; }
+.table-card.ordering { border-color: var(--gold); color: var(--gold); }
 .table-card.cooking { border-color: #ff4444; background: #1a0808; animation: pulse 2s infinite; }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
-/* BILLING INVOICE */
-.invoice-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; background: #fff; color: #000; padding: 25px; border-radius: 4px; z-index: 6000; font-family: monospace; }
-.inv-row { display: flex; justify-content: space-between; margin: 5px 0; }
-.inv-row.total { font-weight: bold; font-size: 18px; border-top: 1px solid #000; margin-top: 10px; padding-top: 10px; }
-.print-btn { background: #000; color: #fff; width: 100%; border: none; padding: 15px; margin-top: 15px; cursor: pointer; font-weight: bold; }
-
-/* MISC */
-.erp-table { width: 100%; border-collapse: collapse; }
-.erp-table th { color: var(--gold); text-align: left; padding: 10px; border-bottom: 2px solid var(--border); }
-.erp-table td { padding: 10px; border-bottom: 1px solid var(--border); }
-.kds-flex { display: flex; gap: 15px; padding: 20px; overflow-x: auto; }
-.kds-card { background: #111; border-top: 4px solid #ff4444; padding: 15px; min-width: 180px; }
-.stat-card { background: #111; padding: 20px; border-radius: 8px; margin-bottom: 10px; }
-.stat-card.gold { background: var(--gold); color: #000; }
-
-/* DRAWER */
+/* DRAWER & QTY */
 #drawer { position: fixed; right: -100%; top: 0; width: 85%; height: 100%; background: #000; transition: 0.4s; z-index: 1000; border-left: 1px solid var(--gold); display:flex; }
 #drawer.active { right: 0; }
-.menu-side { flex: 2; padding: 20px; overflow-y: auto; border-right: 1px solid #222; }
-.check-side { flex: 1; padding: 20px; }
-.menu-items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.menu-item { background: #111; padding: 15px; border-radius: 8px; border: 1px solid #222; }
-.menu-item button { background: var(--gold); border: none; width: 100%; padding: 8px; margin-top: 10px; font-weight: bold; }
-.fire-btn { background: var(--gold); border: none; width: 100%; padding: 20px; font-weight: bold; font-size: 16px; margin-top: 20px; }
+.pos-layout { display: flex; width: 100%; }
+.menu-side { flex: 2; padding: 20px; border-right: 1px solid #222; overflow-y: auto; }
+.check-side { flex: 1.2; padding: 20px; background: #080808; }
+.cart-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #1a1a1a; }
+.qty-control { display: flex; align-items: center; gap: 10px; }
+.qty-control button { background: #111; border: 1px solid var(--gold); color: var(--gold); width: 32px; height: 32px; cursor: pointer; border-radius: 4px; font-weight: bold; }
 
-/* LOGIN */
-#login-overlay { position: fixed; inset: 0; background: #000; z-index: 5000; display: flex; align-items: center; justify-content: center; }
-.login-card { text-align: center; border: 1px solid var(--border); padding: 50px; }
-.luxury-logo { font-size: 2.5rem; color: var(--gold); margin-bottom: 15px; letter-spacing: 8px; }
-.login-card input { background: transparent; border: none; border-bottom: 1px solid var(--gold); color: #fff; text-align: center; font-size: 20px; outline: none; margin: 20px 0; }
-
-/* QUANTITY CONTROLS IN POS */
-.cart-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid #1a1a1a;
-}
-.qty-controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.qty-controls button {
-    background: #222;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-    width: 32px;
-    height: 32px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-}
-.qty-num {
-    font-size: 16px;
-    font-weight: 600;
-    min-width: 20px;
-    text-align: center;
-}
-
-/* KITCHEN TICKET STYLING */
-.kds-header {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px dashed #444;
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-}
-.kds-time {
-    font-size: 10px;
-    color: #666;
-    margin-bottom: 10px;
-}
-.kds-item-row {
-    display: flex;
-    gap: 10px;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
+/* KDS */
+.kds-flex { display: flex; gap: 15px; padding: 20px; overflow-x: auto; }
+.kds-card { background: #111; border-top: 4px solid #ff4444; padding: 15px; min-width: 200px; border-radius: 4px; }
+.kds-badge { background: #ff4444; color: white; padding: 2px 8px; border-radius: 2px; font-size: 11px; font-weight: bold; margin-bottom: 5px; display: inline-block; }
+.kds-meta { font-size: 10px; color: #555; margin-bottom: 10px; }
+.serve-btn { width: 100%; background: #00c851; color: white; border: none; padding: 12px; margin-top: 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
