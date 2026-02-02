@@ -114,7 +114,7 @@ const db = getDatabase(app);
 const TAX_RATE = 0.13; // 13% VAT
 const SERVICE_CHARGE = 0.10; // 10% Service Charge
 
-let state = { tables: [], sales: [], inventory: [], staff: [{name: "Admin", pin: "1234"}] };
+let state = { tables: [], sales: [], inventory: [], staff: [{name: "Admin", pin: "0000"}] };
 let prevCookingCount = 0;
 
 window.checkLogin = () => {
@@ -277,4 +277,5 @@ function renderCart() {
     }).join('');
     document.getElementById('cart-total').innerText = `Rs. ${total}`;
 }
+
 
