@@ -17,7 +17,8 @@ window.MENU = [
     { id: 2, name: "Wagyu Beef Burger", price: 1250, cat: "Mains" },
     { id: 3, name: "Truffle Tagliatelle", price: 950, cat: "Mains" },
     { id: 4, name: "Vintage Chardonnay", price: 1550, cat: "Drinks" },
-    { id: 5, name: "Espresso Martini", price: 750, cat: "Drinks" }
+    { id: 5, name: "Espresso Martini", price: 750, cat: "Drinks" },
+    { id: 6, name: "Chicken Momo", price: 150, cat: "Starters" }
 ];
 
 let state = { tables: [], activeId: null, sales: [] };
@@ -27,18 +28,19 @@ window.checkLogin = () => {
     if(document.getElementById('staff-pin').value === "1234") {
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('app-content').style.display = 'block';
-    } else { alert("ACCESS DENIED"); }
+    } else { alert("INVALID STAFF PIN"); }
 };
 
-onValue(ref(db, 'lumiere_luxury_final'), (snap) => {
+onValue(ref(db, 'lumiere_industrial_final'), (snap) => {
     const data = snap.val() || {};
     state.tables = data.tables || Array.from({length: 50}, (_, i) => ({ id: i+1, status: 'available', cart: [], isVIP: false }));
     state.sales = data.sales || [];
 
-    // ALARM LOGIC
+    // ALARM LOGIC: Trigger if a new table enters "cooking" status
     const currentCookingCount = state.tables.filter(t => t.status === 'cooking').length;
     if (currentCookingCount > previousCookingCount) {
-        document.getElementById('order-sound').play().catch(() => {});
+        const sound = document.getElementById('order-sound');
+        sound.play().catch(() => console.log("Sound muted by browser - Click anywhere to enable"));
     }
     previousCookingCount = currentCookingCount;
 
@@ -56,8 +58,7 @@ function renderTables() {
     const grid = document.getElementById('table-grid');
     grid.innerHTML = state.tables.map(t => `
         <div class="table-card ${t.status} ${t.isVIP ? 'vip' : ''}" onclick="window.openTable(${t.id})">
-            <span style="font-size:10px; opacity:0.5">T</span>
-            <strong>${t.id}</strong>
+            <span class="table-num">${t.id}</span>
         </div>
     `).join('');
 }
@@ -73,9 +74,11 @@ window.filterMenu = (cat) => {
     const items = window.MENU.filter(m => m.cat === cat);
     document.getElementById('menu-items').innerHTML = items.map(m => `
         <div class="menu-item">
-            <div>${m.name}</div>
-            <div style="color:var(--gold)">Rs. ${m.price}</div>
-            <button onclick="window.updateCart(${m.id}, 1)">ADD</button>
+            <div class="item-info">
+                <strong>${m.name}</strong>
+                <span class="gold-text">Rs. ${m.price}</span>
+            </div>
+            <button class="add-btn" onclick="window.updateCart(${m.id}, 1)">ADD TO CHECK</button>
         </div>
     `).join('');
 };
@@ -95,7 +98,9 @@ window.updateCart = (mId, change) => {
 };
 
 window.fireOrder = () => {
-    state.tables[state.activeId - 1].status = 'cooking';
+    const table = state.tables[state.activeId - 1];
+    if(table.cart.length === 0) return alert("Add items first!");
+    table.status = 'cooking';
     save();
     window.closeDrawer();
 };
@@ -110,20 +115,31 @@ function renderCart() {
     let total = 0;
     document.getElementById('cart-list').innerHTML = table.cart.map(i => {
         total += (i.price * i.qty);
-        return `<div class="cart-row"><span>${i.name} x${i.qty}</span><span>Rs. ${i.price * i.qty}</span></div>`;
+        return `
+            <div class="cart-row">
+                <span>${i.name}</span>
+                <div class="qty-ctrl">
+                    <button onclick="window.updateCart(${i.id}, -1)">-</button>
+                    <b>${i.qty}</b>
+                    <button onclick="window.updateCart(${i.id}, 1)">+</button>
+                </div>
+            </div>`;
     }).join('');
     document.getElementById('cart-total').innerText = `Rs. ${total}`;
 }
 
 function renderKDS() {
     const list = document.getElementById('kds-list');
-    list.innerHTML = state.tables.filter(t => t.status === 'cooking').map(t => `
+    const cooking = state.tables.filter(t => t.status === 'cooking');
+    list.innerHTML = cooking.length ? cooking.map(t => `
         <div class="kds-card">
             <h4>TABLE ${t.id}</h4>
-            ${t.cart.map(i => `<div>${i.name} x ${i.qty}</div>`).join('')}
-            <button onclick="window.serve(${t.id})">SERVE</button>
+            <div class="kds-items">
+                ${t.cart.map(i => `<div>• ${i.name} (${i.qty})</div>`).join('')}
+            </div>
+            <button class="serve-btn" onclick="window.serve(${t.id})">MARK SERVED</button>
         </div>
-    `).join('');
+    `).join('') : '<p style="color:#444">No pending orders.</p>';
 }
 
 window.serve = (id) => {
@@ -136,17 +152,25 @@ function renderAccounting() {
     const occupied = state.tables.filter(t => t.cart.length > 0);
     list.innerHTML = occupied.map(t => {
         const total = t.cart.reduce((s, i) => s + (i.price * i.qty), 0);
-        return `<div class="bill-row">T${t.id}: Rs.${total} <button onclick="window.settle(${t.id}, ${total})">SETTLE</button></div>`;
+        return `
+            <div class="bill-card">
+                <span>T${t.id}: <b>Rs. ${total}</b></span>
+                <button onclick="window.settle(${t.id}, ${total})">SETTLE</button>
+            </div>`;
     }).join('');
+    const revenue = state.sales.reduce((sum, s) => sum + s.total, 0);
+    document.getElementById('rev-total').innerText = `Rs. ${revenue}`;
 }
 
 window.settle = (id, total) => {
-    state.sales.push({ total, date: new Date().toLocaleDateString() });
-    state.tables[id-1] = { id, status: 'available', cart: [], isVIP: false };
-    save();
+    if(confirm(`Settle Table ${id} for Rs. ${total}?`)) {
+        state.sales.push({ total, ts: Date.now() });
+        state.tables[id-1] = { id, status: 'available', cart: [], isVIP: false };
+        save();
+    }
 };
 
-const save = () => set(ref(db, 'lumiere_luxury_final'), state);
+const save = () => set(ref(db, 'lumiere_industrial_final'), state);
 window.closeDrawer = () => { document.getElementById('drawer').classList.remove('active'); state.activeId = null; };
 window.showModule = (mod, btn) => {
     document.querySelectorAll('.module-view').forEach(m => m.style.display = 'none');
