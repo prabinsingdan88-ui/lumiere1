@@ -2,72 +2,55 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LUMIÈRE | Professional ERP</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <audio id="order-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
-    <div id="app-content">
-        <header class="main-header">
-            <div class="nav-brand">LUMIÈRE <span>v5.0</span></div>
-            <nav class="nav-links">
-                <button class="active" onclick="showModule('floor', this)">FLOOR MAP</button>
-                <button onclick="showModule('kitchen', this)">KITCHEN (KDS)</button>
-                <button onclick="showModule('inventory', this)">STOCK</button>
-                <button onclick="showModule('accounting', this)">BILLING</button>
-            </nav>
-            <button class="refresh-btn" onclick="location.reload()">REFRESH</button>
-        </header>
+    <header class="main-header">
+        <div class="logo">LUMIÈRE <span>ERP</span></div>
+        <nav class="nav-links">
+            <button class="nav-btn active" onclick="showMod('floor', this)">FLOOR MAP</button>
+            <button class="nav-btn" onclick="showMod('kitchen', this)">KITCHEN (KDS)</button>
+            <button class="nav-btn" onclick="showMod('billing', this)">BILLING</button>
+        </nav>
+    </header>
 
-        <main class="viewport">
-            <section id="floor-mod" class="module-view">
-                <div class="grid" id="table-grid"></div>
-            </section>
+    <main class="content">
+        <section id="floor-mod" class="module">
+            <div class="table-grid" id="grid"></div>
+        </section>
 
-            <section id="kitchen-mod" class="module-view" style="display:none">
-                <div id="kds-list" class="kds-flex"></div>
-            </section>
+        <section id="kitchen-mod" class="module" style="display:none">
+            <div id="kds-list" class="kds-flex"></div>
+        </section>
 
-            <section id="inventory-mod" class="module-view" style="display:none">
-                <table class="erp-table">
-                    <thead><tr><th>Item</th><th>Stock</th><th>Price</th></tr></thead>
-                    <tbody id="inv-body"></tbody>
-                </table>
-            </section>
+        <section id="billing-mod" class="module" style="display:none">
+            <div id="billing-list" class="bill-grid"></div>
+        </section>
+    </main>
 
-            <section id="accounting-mod" class="module-view" style="display:none">
-                <div class="billing-pane">
-                    <h3>Active Tables for Settlement</h3>
-                    <div id="active-bills-list" class="bill-grid"></div>
-                </div>
-                <div id="invoice-preview" class="invoice-box" style="display:none">
-                    <div class="invoice-header"><h3>LUMIÈRE</h3><p>TAX INVOICE</p></div>
-                    <div id="invoice-content"></div>
-                    <div class="invoice-footer">
-                        <button class="print-btn" onclick="window.finalizePayment()">CONFIRM & SETTLE</button>
-                        <button class="close-btn" onclick="document.getElementById('invoice-preview').style.display='none'">CANCEL</button>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <div id="drawer-overlay" onclick="window.closeDrawer()"></div>
-    <div id="drawer">
-        <div class="pos-layout">
-            <div class="menu-side">
-                <div id="cat-bar" class="cat-bar"></div>
-                <div id="menu-items" class="menu-items-grid"></div>
+    <div id="drawer-overlay" onclick="closeDrawer()"></div>
+    <div id="drawer" class="drawer">
+        <div class="drawer-header">
+            <h2 id="active-table-title">TABLE</h2>
+            <button class="close-x" onclick="closeDrawer()">&times;</button>
+        </div>
+        
+        <div class="drawer-body">
+            <div class="menu-section">
+                <h3>Select Items</h3>
+                <div id="menu-items" class="menu-grid"></div>
             </div>
-            <div class="check-side">
-                <h2 id="table-title">TABLE</h2>
-                <div id="cart-list" class="cart-items"></div>
-                <div class="bill-footer">
-                    <div class="total-line">TOTAL: <span id="cart-total">Rs. 0</span></div>
-                    <button class="fire-btn" onclick="window.fireOrder()">SEND TO KITCHEN</button>
+            <div class="cart-section">
+                <h3>Order Preview</h3>
+                <div id="cart-list" class="cart-scroll"></div>
+                <div class="cart-footer">
+                    <div class="total-row">TOTAL: <span id="cart-total">Rs. 0</span></div>
+                    <button class="fire-btn" onclick="fireOrder()">SEND TO KITCHEN</button>
                 </div>
             </div>
         </div>
