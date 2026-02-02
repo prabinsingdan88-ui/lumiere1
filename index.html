@@ -3,57 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lumiere ERP v3</title>
+    <title>Lumiere Industrial ERP</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav class="top-nav">
-        <div class="logo">LUMIÈRE</div>
-        <div class="nav-links">
-            <button onclick="showSection('waiter')">TABLES</button>
-            <button onclick="showSection('kitchen')">KITCHEN</button>
-            <button onclick="showSection('admin')">ADMIN</button>
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2 style="color:var(--gold)">LUMIÈRE</h2>
+            <input type="password" id="staff-pin" placeholder="Enter Staff PIN (1234)">
+            <button onclick="window.checkLogin()">LOGIN</button>
         </div>
-    </nav>
+    </div>
 
-    <section id="waiter-sec" class="app-section">
-        <div id="table-grid" class="grid"></div>
-    </section>
+    <div id="app-content" style="display:none">
+        <nav class="sidebar">
+            <div class="logo">LUMIÈRE</div>
+            <button onclick="showModule('floor')">Floor Map</button>
+            <button onclick="showModule('kitchen')">Kitchen</button>
+            <button onclick="showModule('inventory')">Inventory</button>
+            <button onclick="showModule('accounting')">Accounting</button>
+            <button onclick="showModule('analytics')">Analytics</button>
+            <button onclick="location.reload()" style="color:red; margin-top:20px;">Logout</button>
+        </nav>
 
-    <section id="kitchen-sec" class="app-section" style="display:none;">
-        <h2 style="text-align:center; color:var(--gold);">KITCHEN ORDERS</h2>
-        <div id="kitchen-list" class="kds-grid"></div>
-    </section>
+        <main class="viewport">
+            <section id="floor-mod" class="module">
+                <div class="grid" id="table-grid"></div>
+            </section>
 
-    <section id="admin-sec" class="app-section" style="display:none;">
-        <div class="admin-panel">
-            <h2 style="color:var(--gold); text-align:center;">BILLING CONTROL</h2>
-            <div id="settle-list"></div>
-        </div>
-    </section>
+            <section id="kitchen-mod" class="module" style="display:none">
+                <h2>Live KDS</h2>
+                <div id="kds-list"></div>
+            </section>
+
+            <section id="inventory-mod" class="module" style="display:none">
+                <h2>Inventory Control</h2>
+                <table id="inv-table">
+                    <thead><tr><th>Item</th><th>Stock</th><th>Action</th></tr></thead>
+                    <tbody id="inv-body"></tbody>
+                </table>
+            </section>
+
+            <section id="accounting-mod" class="module" style="display:none">
+                <h2>General Ledger & Billing</h2>
+                <div id="active-bills"></div>
+            </section>
+
+            <section id="analytics-mod" class="module" style="display:none">
+                <h2>Business Intelligence</h2>
+                <div class="stat-card">Total Revenue: <span id="rev-total">0</span></div>
+                <div id="sales-log"></div>
+            </section>
+        </main>
+    </div>
 
     <div id="drawer">
         <div class="drawer-header">
-            <h2 id="table-title">Table</h2>
-            <button class="vip-btn" onclick="window.toggleVIP()">VIP MODE</button>
+            <h3 id="table-title">Table</h3>
+            <div class="cats">
+                <button onclick="filterMenu('Starters')">Starters</button>
+                <button onclick="filterMenu('Mains')">Mains</button>
+                <button onclick="filterMenu('Drinks')">Drinks</button>
+            </div>
         </div>
-        
-        <div id="menu-grid" class="menu-grid"></div>
-        
-        <div class="cart-area">
-            <h4>Current Items</h4>
-            <div id="cart-items"></div>
+        <div id="menu-items" class="menu-grid"></div>
+        <div class="order-summary">
+            <h4>Cart</h4>
+            <div id="cart-list"></div>
             <button class="fire-btn" onclick="window.fireOrder()">SEND TO KITCHEN</button>
         </div>
-        <button class="close-btn" onclick="window.closeDrawer()">DISMISS</button>
+        <button class="close-btn" onclick="closeDrawer()">CLOSE</button>
     </div>
 
     <script type="module" src="app.js"></script>
-    <script>
-        function showSection(id) {
-            document.querySelectorAll('.app-section').forEach(s => s.style.display = 'none');
-            document.getElementById(id + '-sec').style.display = 'block';
-        }
-    </script>
 </body>
 </html>
