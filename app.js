@@ -1,12 +1,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBFYubxSUHpP6g5Vvwt65gsWXDr5Ux535o",
     authDomain: "lumiere-erp.firebaseapp.com",
     projectId: "lumiere-erp",
     databaseURL: "https://lumiere-erp-default-rtdb.firebaseio.com",
-    storageBucket: "lumiere-erp.firebasestorage.app",
     appId: "1:78622005633:web:c231e3862e13787686b080"
 };
 
@@ -14,117 +13,138 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 window.MENU = [
-    { id: 1, name: "Chicken Momo", price: 150 },
-    { id: 2, name: "Veg Momo", price: 120 },
-    { id: 3, name: "Buff Choila", price: 200 },
-    { id: 4, name: "Cold Beer", price: 550 },
-    { id: 5, name: "Coke", price: 60 },
-    { id: 6, name: "Iced Tea", price: 80 }
+    { id: 1, name: "Momo", price: 150, cat: "Starters", stock: 100 },
+    { id: 2, name: "Steak", price: 850, cat: "Mains", stock: 20 },
+    { id: 3, name: "Beer", price: 550, cat: "Drinks", stock: 48 }
 ];
 
-let state = { tables: [], activeId: null };
+let state = { tables: [], activeId: null, sales: [] };
 
-onValue(ref(db, 'lumiere_final/tables'), (snap) => {
-    const data = snap.val();
-    state.tables = data || Array.from({length: 50}, (_, i) => ({ 
-        id: i+1, status: 'empty', orders: [], isVIP: false 
-    }));
-    renderAll();
+// Auth Logic
+window.checkLogin = () => {
+    if(document.getElementById('staff-pin').value === "1234") {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('app-content').style.display = 'flex';
+    } else { alert("Wrong PIN!"); }
+};
+
+// Real-time Sync
+onValue(ref(db, 'lumiere_industrial'), (snap) => {
+    const data = snap.val() || {};
+    state.tables = data.tables || Array.from({length: 50}, (_, i) => ({ id: i+1, status: 'empty', cart: [] }));
+    state.sales = data.sales || [];
+    render();
 });
 
-function renderAll() {
+function render() {
     renderTables();
-    renderKitchen();
-    renderAdmin();
-    if(state.activeId) renderCart();
+    renderKDS();
+    renderInventory();
+    renderAccounting();
 }
 
 function renderTables() {
     const grid = document.getElementById('table-grid');
     grid.innerHTML = state.tables.map(t => `
-        <div class="table-card ${t.status} ${t.isVIP ? 'vip' : ''}" onclick="window.openDrawer(${t.id})">
-            <strong>${t.id}</strong>
-            ${t.isVIP ? '<div class="vip-tag">★ VIP</div>' : ''}
+        <div class="table-card ${t.status}" onclick="window.openTable(${t.id})">
+            ${t.id}
         </div>
     `).join('');
 }
 
-window.openDrawer = (id) => {
+window.openTable = (id) => {
     state.activeId = id;
-    document.getElementById('table-title').innerText = "Table " + id;
+    document.getElementById('table-title').innerText = `Table ${id}`;
     document.getElementById('drawer').classList.add('active');
-    renderMenu();
+    window.filterMenu('Starters');
     renderCart();
 };
 
-function renderMenu() {
-    document.getElementById('menu-grid').innerHTML = window.MENU.map(m => `
-        <button onclick="window.addItem(${m.id})">${m.name}<br>Rs.${m.price}</button>
+window.filterMenu = (cat) => {
+    const items = window.MENU.filter(m => m.cat === cat);
+    document.getElementById('menu-items').innerHTML = items.map(m => `
+        <div class="menu-item">
+            <span>${m.name} (Rs.${m.price})</span>
+            <button onclick="window.updateCart(${m.id}, 1)">+</button>
+        </div>
     `).join('');
-}
+};
 
-window.addItem = (mid) => {
-    const item = window.MENU.find(m => m.id === mid);
+window.updateCart = (mId, change) => {
     const table = state.tables[state.activeId - 1];
-    if (!table.orders) table.orders = [];
-    table.orders.push({ ...item, ts: Date.now() });
-    table.status = 'ordering';
+    const item = window.MENU.find(m => m.id === mId);
+    const existing = table.cart.find(c => c.id === mId);
+
+    if (existing) {
+        existing.qty += change;
+        if(existing.qty <= 0) table.cart = table.cart.filter(c => c.id !== mId);
+    } else {
+        table.cart.push({ ...item, qty: 1 });
+    }
+    table.status = table.cart.length > 0 ? 'ordering' : 'empty';
     save();
 };
 
 window.fireOrder = () => {
-    const table = state.tables[state.activeId - 1];
-    if (!table.orders || table.orders.length === 0) return alert("Empty order!");
-    table.status = 'cooking';
+    state.tables[state.activeId - 1].status = 'cooking';
     save();
     window.closeDrawer();
 };
 
-window.toggleVIP = () => {
-    state.tables[state.activeId - 1].isVIP = !state.tables[state.activeId - 1].isVIP;
-    save();
-};
-
-function renderKitchen() {
-    const list = document.getElementById('kitchen-list');
-    const cooking = state.tables.filter(t => t.status === 'cooking');
-    list.innerHTML = cooking.map(t => `
-        <div class="kds-card">
-            <h3>Table ${t.id}</h3>
-            <ul>${t.orders.map(o => `<li>${o.name}</li>`).join('')}</ul>
-            <button onclick="window.markServed(${t.id})">READY TO SERVE</button>
-        </div>
+function renderInventory() {
+    const body = document.getElementById('inv-body');
+    body.innerHTML = window.MENU.map(m => `
+        <tr><td>${m.name}</td><td>${m.stock}</td><td><button onclick="adjStock(${m.id})">Restock</button></td></tr>
     `).join('');
 }
 
-window.markServed = (id) => {
-    state.tables[id - 1].status = 'served';
-    save();
-};
-
-function renderAdmin() {
-    const list = document.getElementById('settle-list');
-    const active = state.tables.filter(t => t.orders && t.orders.length > 0);
-    list.innerHTML = active.map(t => {
-        const total = t.orders.reduce((sum, o) => sum + o.price, 0);
-        return `
-            <div class="admin-row">
-                <span>Table ${t.id} - <b>Rs. ${total}</b></span>
-                <button onclick="window.settleBill(${t.id})">SETTLE BILL</button>
-            </div>`;
+function renderAccounting() {
+    const list = document.getElementById('active-bills');
+    const occupied = state.tables.filter(t => t.cart.length > 0);
+    list.innerHTML = occupied.map(t => {
+        const total = t.cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        return `<div class="bill-row">Table ${t.id}: Rs.${total} <button onclick="window.settle(${t.id}, ${total})">PAID & PRINT</button></div>`;
     }).join('');
 }
 
-window.settleBill = (id) => {
-    if(confirm(`Table ${id} has paid?`)) {
-        state.tables[id - 1] = { id, status: 'empty', orders: [], isVIP: false };
-        save();
-    }
+window.settle = (id, total) => {
+    const sale = { id: Date.now(), total, items: state.tables[id-1].cart };
+    state.sales.push(sale);
+    // Deduct stock logic here...
+    state.tables[id-1] = { id, status: 'empty', cart: [] };
+    save();
+    window.printBill(sale);
 };
 
-const save = () => set(ref(db, 'lumiere_final/tables'), state.tables);
-window.closeDrawer = () => { document.getElementById('drawer').classList.remove('active'); state.activeId = null; };
+window.printBill = (sale) => {
+    let win = window.open('', 'PRINT', 'height=400,width=300');
+    win.document.write(`<h1>LUMIÈRE</h1><p>Bill ID: ${sale.id}</p><hr>`);
+    sale.items.forEach(i => win.document.write(`<p>${i.name} x ${i.qty}: ${i.price * i.qty}</p>`));
+    win.document.write(`<hr><h3>TOTAL: Rs.${sale.total}</h3>`);
+    win.print();
+    win.close();
+};
+
+const save = () => set(ref(db, 'lumiere_industrial'), state);
+window.closeDrawer = () => document.getElementById('drawer').classList.remove('active');
+window.showModule = (mod) => {
+    document.querySelectorAll('.module').forEach(m => m.style.display = 'none');
+    document.getElementById(mod + '-mod').style.display = 'block';
+};
 function renderCart() {
     const table = state.tables[state.activeId - 1];
-    document.getElementById('cart-items').innerHTML = table.orders?.map(o => `<div>• ${o.name}</div>`).join('') || "Empty";
+    document.getElementById('cart-list').innerHTML = table.cart.map(i => `
+        <div class="cart-row">
+            ${i.name} 
+            <button onclick="window.updateCart(${i.id}, -1)">-</button>
+            ${i.qty}
+            <button onclick="window.updateCart(${i.id}, 1)">+</button>
+        </div>
+    `).join('');
+}
+function renderKDS() {
+    const list = document.getElementById('kds-list');
+    list.innerHTML = state.tables.filter(t => t.status === 'cooking').map(t => `
+        <div class="kds-card">Table ${t.id}: ${t.cart.map(i => i.name + 'x' + i.qty).join(', ')}</div>
+    `).join('');
 }
