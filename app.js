@@ -118,13 +118,28 @@ let state = { tables: [], sales: [], inventory: [], staff: [{name: "Admin", pin:
 let prevCookingCount = 0;
 
 window.checkLogin = () => {
-    const pin = document.getElementById('staff-pin').value;
-    if(state.staff.some(s => s.pin === pin)) {
+    const pinInput = document.getElementById('staff-pin').value;
+    console.log("Attempting login with PIN:", pinInput);
+
+    if (!state.staff || state.staff.length === 0) {
+        alert("System Error: Staff data not loaded from Firebase yet. Please wait 2 seconds and try again.");
+        return;
+    }
+
+    const user = state.staff.find(s => s.pin === pinInput);
+
+    if(user) {
+        console.log("Access Granted to:", user.name);
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('app-content').style.display = 'block';
-    } else { alert("INVALID PIN"); }
+        // Unlock audio context
+        document.getElementById('order-sound').play().then(() => {
+            document.getElementById('order-sound').pause();
+        }).catch(e => console.log("Audio ready for later"));
+    } else { 
+        alert("INVALID PIN. ACCESS DENIED."); 
+    }
 };
-
 onValue(ref(db, 'lumiere_ultimate_system'), (snap) => {
     const data = snap.val() || {};
     state.tables = data.tables || Array.from({length: 50}, (_, i) => ({ id: i+1, status: 'available', cart: [] }));
@@ -277,5 +292,6 @@ function renderCart() {
     }).join('');
     document.getElementById('cart-total').innerText = `Rs. ${total}`;
 }
+
 
 
