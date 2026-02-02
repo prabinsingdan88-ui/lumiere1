@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LUMIÈRE | Ultimate Restaurant ERP</title>
+    <title>LUMIÈRE | Professional ERP</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -12,14 +12,14 @@
 
     <div id="app-content">
         <header class="main-header">
-            <div class="nav-brand">LUMIÈRE <span>ULTIMATE v5.0</span></div>
+            <div class="nav-brand">LUMIÈRE <span>v5.0</span></div>
             <nav class="nav-links">
                 <button class="active" onclick="showModule('floor', this)">FLOOR MAP</button>
                 <button onclick="showModule('kitchen', this)">KITCHEN (KDS)</button>
                 <button onclick="showModule('inventory', this)">STOCK</button>
                 <button onclick="showModule('accounting', this)">BILLING</button>
             </nav>
-            <button class="refresh-btn" onclick="location.reload()">REFRESH SYSTEM</button>
+            <button class="refresh-btn" onclick="location.reload()">REFRESH</button>
         </header>
 
         <main class="viewport">
@@ -39,11 +39,9 @@
             </section>
 
             <section id="accounting-mod" class="module-view" style="display:none">
-                <div class="accounting-grid">
-                    <div class="billing-pane">
-                        <h3>Pending Settlement</h3>
-                        <div id="active-bills-list" class="bill-grid"></div>
-                    </div>
+                <div class="billing-pane">
+                    <h3>Active Tables for Settlement</h3>
+                    <div id="active-bills-list" class="bill-grid"></div>
                 </div>
                 <div id="invoice-preview" class="invoice-box" style="display:none">
                     <div class="invoice-header"><h3>LUMIÈRE</h3><p>TAX INVOICE</p></div>
@@ -61,7 +59,7 @@
     <div id="drawer">
         <div class="pos-layout">
             <div class="menu-side">
-                <div class="cat-bar" id="cat-bar"></div>
+                <div id="cat-bar" class="cat-bar"></div>
                 <div id="menu-items" class="menu-items-grid"></div>
             </div>
             <div class="check-side">
