@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lumiere ERP v3</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="logo">LUMIÈRE</div>
+        <div class="nav-links">
+            <button onclick="showSection('waiter')">TABLES</button>
+            <button onclick="showSection('kitchen')">KITCHEN</button>
+            <button onclick="showSection('admin')">ADMIN</button>
+        </div>
+    </nav>
+
+    <section id="waiter-sec" class="app-section">
+        <div id="table-grid" class="grid"></div>
+    </section>
+
+    <section id="kitchen-sec" class="app-section" style="display:none;">
+        <h2 style="text-align:center; color:var(--gold);">KITCHEN ORDERS</h2>
+        <div id="kitchen-list" class="kds-grid"></div>
+    </section>
+
+    <section id="admin-sec" class="app-section" style="display:none;">
+        <div class="admin-panel">
+            <h2 style="color:var(--gold); text-align:center;">BILLING CONTROL</h2>
+            <div id="settle-list"></div>
+        </div>
+    </section>
+
+    <div id="drawer">
+        <div class="drawer-header">
+            <h2 id="table-title">Table</h2>
+            <button class="vip-btn" onclick="window.toggleVIP()">VIP MODE</button>
+        </div>
+        
+        <div id="menu-grid" class="menu-grid"></div>
+        
+        <div class="cart-area">
+            <h4>Current Items</h4>
+            <div id="cart-items"></div>
+            <button class="fire-btn" onclick="window.fireOrder()">SEND TO KITCHEN</button>
+        </div>
+        <button class="close-btn" onclick="window.closeDrawer()">DISMISS</button>
+    </div>
+
+    <script type="module" src="app.js"></script>
+    <script>
+        function showSection(id) {
+            document.querySelectorAll('.app-section').forEach(s => s.style.display = 'none');
+            document.getElementById(id + '-sec').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
