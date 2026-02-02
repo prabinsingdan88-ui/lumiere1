@@ -18,7 +18,26 @@
             <button onclick="window.checkLogin()">AUTHORIZE ACCESS</button>
         </div>
     </div>
-
+<div id="drawer">
+    <div class="pos-layout">
+        <div class="menu-side">
+            <div class="cat-bar" id="cat-bar"></div>
+            <div id="menu-items" class="menu-items-grid"></div>
+        </div>
+        <div class="check-side">
+            <div class="drawer-header">
+                <h2 id="table-title">TABLE</h2>
+                <span id="order-id-display" style="color:var(--gold); font-size: 12px;"></span>
+            </div>
+            <div id="cart-list" class="cart-items">
+                </div>
+            <div class="bill-footer">
+                <div class="total-line">TOTAL: <span id="cart-total">Rs. 0</span></div>
+                <button class="fire-btn" onclick="window.fireOrder()">SEND TO KITCHEN</button>
+            </div>
+        </div>
+    </div>
+</div>
     <div id="app-content" style="display:none">
         <header class="main-header">
             <div class="nav-brand">LUMIÈRE <span>ULTIMATE v5.0</span></div>
@@ -106,3 +125,4 @@
     <script type="module" src="app.js"></script>
 </body>
 </html>
+
