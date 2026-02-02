@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LUMIÈRE | Premium ERP v4.0</title>
+    <title>LUMIÈRE | Ultimate Restaurant ERP</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,23 +13,23 @@
     <div id="login-overlay">
         <div class="login-card">
             <div class="luxury-logo">LUMIÈRE</div>
-            <p style="letter-spacing: 5px; font-size: 10px; color: #666; margin-bottom: 20px;">INDUSTRIAL SYSTEM v4.0</p>
-            <input type="password" id="staff-pin" placeholder="ENTER STAFF PIN" maxlength="4">
+            <p style="letter-spacing: 5px; font-size: 10px; color: #666; margin-bottom: 20px;">ENTER STAFF CREDENTIALS</p>
+            <input type="password" id="staff-pin" placeholder="PIN" maxlength="4">
             <button onclick="window.checkLogin()">AUTHORIZE ACCESS</button>
         </div>
     </div>
 
     <div id="app-content" style="display:none">
         <header class="main-header">
-            <div class="nav-brand">LUMIÈRE <span>PREMIUM ERP</span></div>
+            <div class="nav-brand">LUMIÈRE <span>ULTIMATE v5.0</span></div>
             <nav class="nav-links">
                 <button class="active" onclick="showModule('floor', this)">FLOOR MAP</button>
                 <button onclick="showModule('kitchen', this)">KITCHEN (KDS)</button>
-                <button onclick="showModule('inventory', this)">INVENTORY</button>
-                <button onclick="showModule('accounting', this)">ACCOUNTING</button>
-                <button onclick="showModule('analytics', this)">DASHBOARD</button>
+                <button onclick="showModule('inventory', this)">STOCK</button>
+                <button onclick="showModule('accounting', this)">BILLING</button>
+                <button onclick="showModule('staff', this)">STAFF</button>
             </nav>
-            <div class="staff-info"><button class="logout-btn" onclick="location.reload()">LOGOUT</button></div>
+            <button class="logout-btn" onclick="location.reload()">LOGOUT</button>
         </header>
 
         <main class="viewport">
@@ -46,56 +46,58 @@
             </section>
 
             <section id="kitchen-mod" class="module-view" style="display:none">
-                <div class="view-header"><h2>Kitchen Display System</h2></div>
                 <div id="kds-list" class="kds-flex"></div>
             </section>
 
+            <section id="inventory-mod" class="module-view" style="display:none">
+                <div class="view-header"><h2>Live Stock Management</h2></div>
+                <table class="erp-table">
+                    <thead><tr><th>Item</th><th>Category</th><th>Stock</th><th>Cost</th><th>Price</th></tr></thead>
+                    <tbody id="inv-body"></tbody>
+                </table>
+            </section>
+
             <section id="accounting-mod" class="module-view" style="display:none">
-                <div class="view-header"><h2>Financial Control</h2></div>
                 <div class="accounting-grid">
                     <div class="billing-pane">
-                        <h3>Active Bills</h3>
-                        <div id="active-bills"></div>
+                        <h3>Pending Settlement</h3>
+                        <div id="active-bills-list" class="bill-grid"></div>
                     </div>
                     <div class="summary-pane">
-                        <div class="stat-card">
-                            <small>DAILY REVENUE</small>
-                            <h1 id="rev-total">Rs. 0</h1>
-                        </div>
+                        <div class="stat-card gold"><small>DAILY REVENUE</small><h1 id="rev-total">Rs. 0</h1></div>
+                        <div class="stat-card"><small>NET PROFIT</small><h1 id="profit-total">Rs. 0</h1></div>
+                    </div>
+                </div>
+                <div id="invoice-preview" class="invoice-box" style="display:none">
+                    <div class="invoice-header"><h3>LUMIÈRE</h3><p>TAX INVOICE</p></div>
+                    <div id="invoice-content"></div>
+                    <div class="invoice-footer">
+                        <button class="print-btn" onclick="window.finalizePayment()">CONFIRM & SETTLE</button>
+                        <button class="close-btn" onclick="document.getElementById('invoice-preview').style.display='none'">CANCEL</button>
                     </div>
                 </div>
             </section>
 
-            <section id="inventory-mod" class="module-view" style="display:none"><div class="view-header"><h2>Live Inventory Tracking</h2></div></section>
-            <section id="analytics-mod" class="module-view" style="display:none"><div class="view-header"><h2>Business Analytics Dashboard</h2></div></section>
+            <section id="staff-mod" class="module-view" style="display:none">
+                <div class="view-header"><h2>Personnel Attendance</h2></div>
+                <div id="staff-list" class="staff-grid"></div>
+            </section>
         </main>
     </div>
 
     <div id="drawer-overlay" onclick="window.closeDrawer()"></div>
     <div id="drawer">
-        <div class="drawer-inner">
-            <div class="drawer-top">
-                <h2 id="table-title">TABLE</h2>
-                <button class="vip-toggle" onclick="window.toggleVIP()">★ VIP STATUS</button>
+        <div class="pos-layout">
+            <div class="menu-side">
+                <div class="cat-bar" id="cat-bar"></div>
+                <div id="menu-items" class="menu-items-grid"></div>
             </div>
-            
-            <div class="pos-layout">
-                <div class="menu-side">
-                    <div class="cat-bar">
-                        <button onclick="filterMenu('Starters')">STARTERS</button>
-                        <button onclick="filterMenu('Mains')">MAINS</button>
-                        <button onclick="filterMenu('Drinks')">DRINKS</button>
-                    </div>
-                    <div id="menu-items" class="menu-items-grid"></div>
-                </div>
-                
-                <div class="check-side">
-                    <h3>Review Check</h3>
-                    <div id="cart-list" class="cart-items"></div>
-                    <div class="bill-footer">
-                        <div class="total-line">TOTAL: <span id="cart-total">Rs. 0</span></div>
-                        <button class="fire-btn" onclick="window.fireOrder()">SEND TO KITCHEN</button>
-                    </div>
+            <div class="check-side">
+                <h2 id="table-title">TABLE</h2>
+                <div id="cart-list" class="cart-items"></div>
+                <div class="bill-footer">
+                    <div class="total-line">TOTAL: <span id="cart-total">Rs. 0</span></div>
+                    <button class="fire-btn" onclick="window.fireOrder()">SEND TO KITCHEN</button>
                 </div>
             </div>
         </div>
