@@ -23,10 +23,6 @@ onValue(ref(db, 'lumiere_v5_final'), (snap) => {
         { id: 2, name: "Wagyu Beef Burger", price: 1250, cost: 450, cat: "Mains", stock: 50 },
         { id: 3, name: "Vintage Chardonnay", price: 1550, cost: 600, cat: "Drinks", stock: 24 }
     ];
-    
-    const cookingNow = state.tables.filter(t => t.status === 'cooking').length;
-    if(cookingNow > prevCookCount) document.getElementById('order-sound').play().catch(()=>{});
-    prevCookCount = cookingNow;
     render();
 });
 
