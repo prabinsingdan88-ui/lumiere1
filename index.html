@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LUMIÈRE | Premium ERP</title>
+    <title>LUMIÈRE | Premium ERP v4.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,15 +13,15 @@
     <div id="login-overlay">
         <div class="login-card">
             <div class="luxury-logo">LUMIÈRE</div>
-            <p style="letter-spacing: 5px; font-size: 10px; color: #666;">ESTABLISHED 2026</p>
+            <p style="letter-spacing: 5px; font-size: 10px; color: #666; margin-bottom: 20px;">INDUSTRIAL SYSTEM v4.0</p>
             <input type="password" id="staff-pin" placeholder="ENTER STAFF PIN" maxlength="4">
-            <button onclick="window.checkLogin()">ENTER SYSTEM</button>
+            <button onclick="window.checkLogin()">AUTHORIZE ACCESS</button>
         </div>
     </div>
 
     <div id="app-content" style="display:none">
         <header class="main-header">
-            <div class="nav-brand">LUMIÈRE <span>SYSTEM v4.0</span></div>
+            <div class="nav-brand">LUMIÈRE <span>PREMIUM ERP</span></div>
             <nav class="nav-links">
                 <button class="active" onclick="showModule('floor', this)">FLOOR MAP</button>
                 <button onclick="showModule('kitchen', this)">KITCHEN (KDS)</button>
@@ -29,13 +29,13 @@
                 <button onclick="showModule('accounting', this)">ACCOUNTING</button>
                 <button onclick="showModule('analytics', this)">DASHBOARD</button>
             </nav>
-            <div class="staff-info"><button onclick="location.reload()">LOGOUT</button></div>
+            <div class="staff-info"><button class="logout-btn" onclick="location.reload()">LOGOUT</button></div>
         </header>
 
         <main class="viewport">
             <section id="floor-mod" class="module-view">
                 <div class="view-header">
-                    <h2>Main Dining Floor</h2>
+                    <h2>Dining Room</h2>
                     <div class="legend">
                         <span class="dot available"></span> Available
                         <span class="dot ordering"></span> Ordering
@@ -51,20 +51,23 @@
             </section>
 
             <section id="accounting-mod" class="module-view" style="display:none">
-                <div class="view-header"><h2>Financial Ledger</h2></div>
+                <div class="view-header"><h2>Financial Control</h2></div>
                 <div class="accounting-grid">
                     <div class="billing-pane">
-                        <h3>Pending Settlement</h3>
+                        <h3>Active Bills</h3>
                         <div id="active-bills"></div>
                     </div>
                     <div class="summary-pane">
-                        <div class="stat-card gold">Total Revenue: <span id="rev-total">Rs. 0</span></div>
+                        <div class="stat-card">
+                            <small>DAILY REVENUE</small>
+                            <h1 id="rev-total">Rs. 0</h1>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <section id="inventory-mod" class="module-view" style="display:none"><h2>Stock Management</h2></section>
-            <section id="analytics-mod" class="module-view" style="display:none"><h2>Business Analytics</h2></section>
+            <section id="inventory-mod" class="module-view" style="display:none"><div class="view-header"><h2>Live Inventory Tracking</h2></div></section>
+            <section id="analytics-mod" class="module-view" style="display:none"><div class="view-header"><h2>Business Analytics Dashboard</h2></div></section>
         </main>
     </div>
 
@@ -72,9 +75,10 @@
     <div id="drawer">
         <div class="drawer-inner">
             <div class="drawer-top">
-                <h2 id="table-title">TABLE 00</h2>
-                <button class="vip-toggle" onclick="window.toggleVIP()">★ VIP</button>
+                <h2 id="table-title">TABLE</h2>
+                <button class="vip-toggle" onclick="window.toggleVIP()">★ VIP STATUS</button>
             </div>
+            
             <div class="pos-layout">
                 <div class="menu-side">
                     <div class="cat-bar">
@@ -84,8 +88,9 @@
                     </div>
                     <div id="menu-items" class="menu-items-grid"></div>
                 </div>
+                
                 <div class="check-side">
-                    <h3>Current Bill</h3>
+                    <h3>Review Check</h3>
                     <div id="cart-list" class="cart-items"></div>
                     <div class="bill-footer">
                         <div class="total-line">TOTAL: <span id="cart-total">Rs. 0</span></div>
