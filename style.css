@@ -44,3 +44,54 @@ body { background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif
 .login-card { text-align: center; border: 1px solid var(--border); padding: 50px; }
 .luxury-logo { font-size: 2.5rem; color: var(--gold); margin-bottom: 15px; letter-spacing: 8px; }
 .login-card input { background: transparent; border: none; border-bottom: 1px solid var(--gold); color: #fff; text-align: center; font-size: 20px; outline: none; margin: 20px 0; }
+
+/* QUANTITY CONTROLS IN POS */
+.cart-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #1a1a1a;
+}
+.qty-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.qty-controls button {
+    background: #222;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.qty-num {
+    font-size: 16px;
+    font-weight: 600;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* KITCHEN TICKET STYLING */
+.kds-header {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed #444;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+}
+.kds-time {
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 10px;
+}
+.kds-item-row {
+    display: flex;
+    gap: 10px;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
