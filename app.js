@@ -1,3 +1,101 @@
+// Add these variables at the top of app.js
+let orderCounter = 101; 
+
+// FIXED UPDATE CART FUNCTION
+window.updateCart = (mId, change) => {
+    const table = state.tables[state.activeId - 1];
+    const item = state.inventory.find(i => i.id === mId);
+    
+    // Find if item already in cart
+    let existing = table.cart.find(c => c.id === mId);
+
+    if (existing) {
+        existing.qty += change;
+        if(existing.qty <= 0) {
+            table.cart = table.cart.filter(c => c.id !== mId);
+        }
+    } else {
+        if(change > 0) {
+            table.cart.push({ 
+                id: item.id, 
+                name: item.name, 
+                price: item.price, 
+                cost: item.cost,
+                qty: 1 
+            });
+        }
+    }
+    
+    table.status = table.cart.length > 0 ? 'ordering' : 'available';
+    renderCart(); // Refresh the side panel immediately
+    save();
+};
+
+// IMPROVED RENDER CART WITH +/- BUTTONS
+function renderCart() {
+    const table = state.tables[state.activeId - 1];
+    let total = 0;
+    
+    const cartHTML = table.cart.map(i => {
+        total += (i.price * i.qty);
+        return `
+            <div class="cart-row">
+                <div class="cart-info">
+                    <strong>${i.name}</strong>
+                    <span>Rs. ${i.price * i.qty}</span>
+                </div>
+                <div class="qty-controls">
+                    <button onclick="window.updateCart(${i.id}, -1)">-</button>
+                    <span class="qty-num">${i.qty}</span>
+                    <button onclick="window.updateCart(${i.id}, 1)">+</button>
+                </div>
+            </div>`;
+    }).join('');
+    
+    document.getElementById('cart-list').innerHTML = cartHTML || '<p style="text-align:center; color:#444; margin-top:20px;">Cart is empty</p>';
+    document.getElementById('cart-total').innerText = `Rs. ${total}`;
+}
+
+// FIRE ORDER WITH KITCHEN METADATA
+window.fireOrder = () => {
+    const table = state.tables[state.activeId - 1];
+    if(table.cart.length === 0) return alert("Please add items first!");
+
+    const now = new Date();
+    table.status = 'cooking';
+    table.orderNo = `#ORD-${orderCounter++}`;
+    table.orderTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    table.orderDate = now.toLocaleDateString();
+
+    // Deduct Stock
+    table.cart.forEach(c => {
+        const inv = state.inventory.find(i => i.id === c.id);
+        if(inv) inv.stock -= c.qty;
+    });
+
+    save();
+    window.closeDrawer();
+    alert(`Order ${table.orderNo} sent to Kitchen!`);
+};
+
+// KITCHEN DISPLAY (KDS) WITH FULL DETAILS
+function renderKDS() {
+    const cooking = state.tables.filter(t => t.status === 'cooking');
+    document.getElementById('kds-list').innerHTML = cooking.map(t => `
+        <div class="kds-card">
+            <div class="kds-header">
+                <strong>${t.orderNo}</strong>
+                <span>T-${t.id}</span>
+            </div>
+            <div class="kds-time">${t.orderDate} | ${t.orderTime}</div>
+            <div class="kds-items">
+                ${t.cart.map(i => `<div class="kds-item-row"><span>${i.qty}x</span> <span>${i.name}</span></div>`).join('')}
+            </div>
+            <button class="serve-btn" onclick="window.serve(${t.id})">READY TO SERVE</button>
+        </div>
+    `).join('');
+} 
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -179,3 +277,4 @@ function renderCart() {
     }).join('');
     document.getElementById('cart-total').innerText = `Rs. ${total}`;
 }
+
