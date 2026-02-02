@@ -12,53 +12,49 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-window.MENU = [
-    { id: 1, name: "Wild Mushroom Arancini", price: 450, cat: "Starters" },
-    { id: 2, name: "Wagyu Beef Burger", price: 1250, cat: "Mains" },
-    { id: 3, name: "Truffle Tagliatelle", price: 950, cat: "Mains" },
-    { id: 4, name: "Vintage Chardonnay", price: 1550, cat: "Drinks" },
-    { id: 5, name: "Espresso Martini", price: 750, cat: "Drinks" },
-    { id: 6, name: "Chicken Momo", price: 150, cat: "Starters" }
-];
+// TAX CONFIGURATION
+const TAX_RATE = 0.13; // 13% VAT
+const SERVICE_CHARGE = 0.10; // 10% Service Charge
 
-let state = { tables: [], activeId: null, sales: [] };
-let previousCookingCount = 0;
+let state = { tables: [], sales: [], inventory: [], staff: [{name: "Admin", pin: "1234"}] };
+let prevCookingCount = 0;
 
 window.checkLogin = () => {
-    if(document.getElementById('staff-pin').value === "1234") {
+    const pin = document.getElementById('staff-pin').value;
+    if(state.staff.some(s => s.pin === pin)) {
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('app-content').style.display = 'block';
-    } else { alert("INVALID STAFF PIN"); }
+    } else { alert("INVALID PIN"); }
 };
 
-onValue(ref(db, 'lumiere_industrial_final'), (snap) => {
+onValue(ref(db, 'lumiere_ultimate_system'), (snap) => {
     const data = snap.val() || {};
-    state.tables = data.tables || Array.from({length: 50}, (_, i) => ({ id: i+1, status: 'available', cart: [], isVIP: false }));
+    state.tables = data.tables || Array.from({length: 50}, (_, i) => ({ id: i+1, status: 'available', cart: [] }));
     state.sales = data.sales || [];
+    state.inventory = data.inventory || [
+        { id: 1, name: "Wild Mushroom Arancini", price: 450, cost: 120, cat: "Starters", stock: 100 },
+        { id: 2, name: "Wagyu Beef Burger", price: 1250, cost: 450, cat: "Mains", stock: 50 },
+        { id: 3, name: "Vintage Chardonnay", price: 1550, cost: 600, cat: "Drinks", stock: 24 }
+    ];
 
-    // ALARM LOGIC: Trigger if a new table enters "cooking" status
-    const currentCookingCount = state.tables.filter(t => t.status === 'cooking').length;
-    if (currentCookingCount > previousCookingCount) {
-        const sound = document.getElementById('order-sound');
-        sound.play().catch(() => console.log("Sound muted by browser - Click anywhere to enable"));
-    }
-    previousCookingCount = currentCookingCount;
-
+    const currentCook = state.tables.filter(t => t.status === 'cooking').length;
+    if(currentCook > prevCookingCount) document.getElementById('order-sound').play().catch(()=>{});
+    prevCookingCount = currentCook;
     render();
 });
 
 function render() {
     renderTables();
     renderKDS();
+    renderInventory();
     renderAccounting();
     if(state.activeId) renderCart();
 }
 
 function renderTables() {
-    const grid = document.getElementById('table-grid');
-    grid.innerHTML = state.tables.map(t => `
-        <div class="table-card ${t.status} ${t.isVIP ? 'vip' : ''}" onclick="window.openTable(${t.id})">
-            <span class="table-num">${t.id}</span>
+    document.getElementById('table-grid').innerHTML = state.tables.map(t => `
+        <div class="table-card ${t.status}" onclick="window.openTable(${t.id})">
+            <strong>${t.id}</strong>
         </div>
     `).join('');
 }
@@ -67,25 +63,29 @@ window.openTable = (id) => {
     state.activeId = id;
     document.getElementById('table-title').innerText = `TABLE ${id}`;
     document.getElementById('drawer').classList.add('active');
-    window.filterMenu('Starters');
+    renderMenu();
 };
 
+function renderMenu() {
+    const cats = [...new Set(state.inventory.map(i => i.cat))];
+    document.getElementById('cat-bar').innerHTML = cats.map(c => `<button onclick="window.filterMenu('${c}')">${c}</button>`).join('');
+    window.filterMenu(cats[0]);
+}
+
 window.filterMenu = (cat) => {
-    const items = window.MENU.filter(m => m.cat === cat);
-    document.getElementById('menu-items').innerHTML = items.map(m => `
+    const items = state.inventory.filter(i => i.cat === cat);
+    document.getElementById('menu-items').innerHTML = items.map(i => `
         <div class="menu-item">
-            <div class="item-info">
-                <strong>${m.name}</strong>
-                <span class="gold-text">Rs. ${m.price}</span>
-            </div>
-            <button class="add-btn" onclick="window.updateCart(${m.id}, 1)">ADD TO CHECK</button>
+            <b>${i.name}</b>
+            <span class="gold-text">Rs. ${i.price} | Stock: ${i.stock}</span>
+            <button onclick="window.updateCart(${i.id}, 1)" ${i.stock <= 0 ? 'disabled' : ''}>ADD</button>
         </div>
     `).join('');
 };
 
 window.updateCart = (mId, change) => {
     const table = state.tables[state.activeId - 1];
-    const item = window.MENU.find(m => m.id === mId);
+    const item = state.inventory.find(i => i.id === mId);
     const existing = table.cart.find(c => c.id === mId);
     if (existing) {
         existing.qty += change;
@@ -99,78 +99,62 @@ window.updateCart = (mId, change) => {
 
 window.fireOrder = () => {
     const table = state.tables[state.activeId - 1];
-    if(table.cart.length === 0) return alert("Add items first!");
     table.status = 'cooking';
-    save();
-    window.closeDrawer();
+    table.cart.forEach(c => {
+        const inv = state.inventory.find(i => i.id === c.id);
+        if(inv) inv.stock -= c.qty;
+    });
+    save(); window.closeDrawer();
 };
 
-window.toggleVIP = () => {
-    state.tables[state.activeId - 1].isVIP = !state.tables[state.activeId - 1].isVIP;
+window.generateInvoice = (id) => {
+    const table = state.tables[id - 1];
+    const sub = table.cart.reduce((s, i) => s + (i.price * i.qty), 0);
+    const svc = sub * SERVICE_CHARGE;
+    const tax = (sub + svc) * TAX_RATE;
+    const total = sub + svc + tax;
+
+    state.currentInvoice = { id, sub, svc, tax, total, items: [...table.cart] };
+    document.getElementById('invoice-content').innerHTML = `
+        <div class="inv-row"><span>Subtotal</span> <span>Rs. ${sub.toFixed(2)}</span></div>
+        <div class="inv-row"><span>Srv Charge (10%)</span> <span>Rs. ${svc.toFixed(2)}</span></div>
+        <div class="inv-row"><span>VAT (13%)</span> <span>Rs. ${tax.toFixed(2)}</span></div>
+        <div class="inv-row total"><span>GRAND TOTAL</span> <span>Rs. ${total.toFixed(2)}</span></div>
+    `;
+    document.getElementById('invoice-preview').style.display = 'block';
+};
+
+window.finalizePayment = () => {
+    const inv = state.currentInvoice;
+    const cost = inv.items.reduce((s, i) => s + (i.cost * i.qty), 0);
+    state.sales.push({ total: inv.total, cost, ts: Date.now() });
+    state.tables[inv.id - 1] = { id: inv.id, status: 'available', cart: [] };
+    document.getElementById('invoice-preview').style.display = 'none';
     save();
 };
 
-function renderCart() {
-    const table = state.tables[state.activeId - 1];
-    let total = 0;
-    document.getElementById('cart-list').innerHTML = table.cart.map(i => {
-        total += (i.price * i.qty);
-        return `
-            <div class="cart-row">
-                <span>${i.name}</span>
-                <div class="qty-ctrl">
-                    <button onclick="window.updateCart(${i.id}, -1)">-</button>
-                    <b>${i.qty}</b>
-                    <button onclick="window.updateCart(${i.id}, 1)">+</button>
-                </div>
-            </div>`;
-    }).join('');
-    document.getElementById('cart-total').innerText = `Rs. ${total}`;
+function renderInventory() {
+    document.getElementById('inv-body').innerHTML = state.inventory.map(i => `
+        <tr><td>${i.name}</td><td>${i.cat}</td><td>${i.stock}</td><td>${i.cost}</td><td>${i.price}</td></tr>
+    `).join('');
 }
-
-function renderKDS() {
-    const list = document.getElementById('kds-list');
-    const cooking = state.tables.filter(t => t.status === 'cooking');
-    list.innerHTML = cooking.length ? cooking.map(t => `
-        <div class="kds-card">
-            <h4>TABLE ${t.id}</h4>
-            <div class="kds-items">
-                ${t.cart.map(i => `<div>• ${i.name} (${i.qty})</div>`).join('')}
-            </div>
-            <button class="serve-btn" onclick="window.serve(${t.id})">MARK SERVED</button>
-        </div>
-    `).join('') : '<p style="color:#444">No pending orders.</p>';
-}
-
-window.serve = (id) => {
-    state.tables[id-1].status = 'served';
-    save();
-};
 
 function renderAccounting() {
-    const list = document.getElementById('active-bills');
     const occupied = state.tables.filter(t => t.cart.length > 0);
-    list.innerHTML = occupied.map(t => {
-        const total = t.cart.reduce((s, i) => s + (i.price * i.qty), 0);
-        return `
-            <div class="bill-card">
-                <span>T${t.id}: <b>Rs. ${total}</b></span>
-                <button onclick="window.settle(${t.id}, ${total})">SETTLE</button>
-            </div>`;
-    }).join('');
-    const revenue = state.sales.reduce((sum, s) => sum + s.total, 0);
-    document.getElementById('rev-total').innerText = `Rs. ${revenue}`;
+    document.getElementById('active-bills-list').innerHTML = occupied.map(t => `
+        <div class="bill-card">
+            <strong>Table ${t.id}</strong>
+            <button onclick="window.generateInvoice(${t.id})">BILLING</button>
+        </div>
+    `).join('');
+
+    const rev = state.sales.reduce((a, b) => a + b.total, 0);
+    const profit = rev - state.sales.reduce((a, b) => a + b.cost, 0);
+    document.getElementById('rev-total').innerText = `Rs. ${rev.toLocaleString()}`;
+    document.getElementById('profit-total').innerText = `Rs. ${profit.toLocaleString()}`;
 }
 
-window.settle = (id, total) => {
-    if(confirm(`Settle Table ${id} for Rs. ${total}?`)) {
-        state.sales.push({ total, ts: Date.now() });
-        state.tables[id-1] = { id, status: 'available', cart: [], isVIP: false };
-        save();
-    }
-};
-
-const save = () => set(ref(db, 'lumiere_industrial_final'), state);
+const save = () => set(ref(db, 'lumiere_ultimate_system'), state);
 window.closeDrawer = () => { document.getElementById('drawer').classList.remove('active'); state.activeId = null; };
 window.showModule = (mod, btn) => {
     document.querySelectorAll('.module-view').forEach(m => m.style.display = 'none');
@@ -178,3 +162,20 @@ window.showModule = (mod, btn) => {
     document.getElementById(mod + '-mod').style.display = 'block';
     btn.classList.add('active');
 };
+function renderKDS() {
+    const cooking = state.tables.filter(t => t.status === 'cooking');
+    document.getElementById('kds-list').innerHTML = cooking.map(t => `
+        <div class="kds-card"><h4>TABLE ${t.id}</h4>${t.cart.map(i => `<div>${i.name} x${i.qty}</div>`).join('')}
+        <button onclick="window.serve(${t.id})">SERVE</button></div>
+    `).join('');
+}
+window.serve = (id) => { state.tables[id-1].status = 'served'; save(); };
+function renderCart() {
+    const table = state.tables[state.activeId - 1];
+    let total = 0;
+    document.getElementById('cart-list').innerHTML = table.cart.map(i => {
+        total += (i.price * i.qty);
+        return `<div class="cart-row"><span>${i.name}</span><span>x${i.qty}</span></div>`;
+    }).join('');
+    document.getElementById('cart-total').innerText = `Rs. ${total}`;
+}
