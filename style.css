@@ -1,28 +1,39 @@
-:root { --gold: #d4af37; --bg: #050505; --card: #121212; --text: #eee; }
-body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+:root { --gold: #d4af37; --bg: #000; --card: #121212; --border: #222; }
+body { background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; margin: 0; overflow: hidden; }
 
-/* SIDEBAR */
-.sidebar { width: 200px; background: #000; border-right: 1px solid #222; display: flex; flex-direction: column; padding: 20px; }
-.sidebar button { background: none; border: 1px solid #333; color: #888; padding: 12px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; text-align: left; }
-.sidebar button:hover { color: var(--gold); border-color: var(--gold); }
+/* HEADER */
+.main-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; height: 70px; background: #0a0a0a; border-bottom: 1px solid var(--border); }
+.nav-brand { color: var(--gold); font-weight: 600; letter-spacing: 2px; }
+.nav-links button { background: none; border: none; color: #666; padding: 25px 15px; cursor: pointer; font-size: 11px; }
+.nav-links button.active { color: var(--gold); box-shadow: inset 0 -2px 0 var(--gold); }
 
-/* MAIN CONTENT */
-.viewport { flex: 1; overflow-y: auto; padding: 30px; }
-.grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-.table-card { aspect-ratio: 1; background: var(--card); border: 1px solid #333; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+/* GRID */
+.grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+.table-card { aspect-ratio: 1; background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .table-card.ordering { border-color: var(--gold); }
-.table-card.cooking { border-color: #ff4444; }
+.table-card.cooking { border-color: #ff4444; background: #1a0a0a; }
+.table-card.vip { box-shadow: 0 0 10px rgba(212,175,55,0.4); border-color: var(--gold); }
+.dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.available { background: #333; } .ordering { background: var(--gold); } .cooking { background: #ff4444; }
+
+/* POS DRAWER */
+#drawer { position: fixed; right: -100%; top: 0; width: 85%; height: 100%; background: #050505; transition: 0.4s; z-index: 1000; border-left: 1px solid var(--gold); }
+#drawer.active { right: 0; }
+.pos-layout { display: flex; height: calc(100% - 80px); }
+.menu-side { flex: 2; padding: 20px; border-right: 1px solid #222; overflow-y: auto; }
+.check-side { flex: 1; padding: 20px; background: #0a0a0a; }
+.menu-items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.menu-item { background: #111; padding: 15px; border-radius: 8px; border: 1px solid #222; text-align: center; }
+.menu-item button { width: 100%; background: var(--gold); border: none; margin-top: 10px; padding: 8px; font-weight: bold; }
+
+/* KITCHEN & BILLING */
+.kds-flex { display: flex; gap: 15px; padding: 20px; overflow-x: auto; }
+.kds-card { background: #111; border-top: 3px solid #ff4444; padding: 15px; width: 200px; }
+.kds-card button { width: 100%; background: #00c851; border: none; padding: 10px; color: white; margin-top: 10px; }
+.bill-row { background: #111; padding: 15px; margin-bottom: 5px; display: flex; justify-content: space-between; border-radius: 4px; }
 
 /* LOGIN */
-#login-overlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; }
-.login-box { background: #111; padding: 40px; border-radius: 20px; text-align: center; border: 1px solid var(--gold); }
-.login-box input { padding: 15px; background: #222; border: 1px solid #444; color: #fff; width: 100%; border-radius: 10px; margin: 20px 0; }
-
-/* DRAWER */
-#drawer { position: fixed; right: -400px; top: 0; width: 400px; height: 100%; background: #0a0a0a; border-left: 2px solid var(--gold); transition: 0.3s; padding: 30px; box-sizing: border-box; z-index: 1000; }
-#drawer.active { right: 0; }
-.cart-row { display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 10px; margin-top: 5px; border-radius: 5px; }
-
-/* ACCOUNTING */
-.bill-row { background: #111; padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; }
-.stat-card { background: var(--gold); color: #000; padding: 30px; border-radius: 15px; font-size: 2rem; font-weight: bold; }
+#login-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; }
+.login-card { text-align: center; border: 1px solid var(--border); padding: 50px; background: #050505; }
+.luxury-logo { font-size: 2.5rem; color: var(--gold); margin-bottom: 20px; }
+.login-card input { background: transparent; border: none; border-bottom: 1px solid var(--gold); color: #fff; text-align: center; padding: 10px; font-size: 20px; outline: none; }
